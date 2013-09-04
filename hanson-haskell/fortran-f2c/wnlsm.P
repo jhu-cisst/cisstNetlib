@@ -1,0 +1,13 @@
+extern int wnlsm_(doublereal *w, integer *mdw, integer *mme, integer *ma, integer *n, integer *l, doublereal *prgopt, doublereal *x, doublereal *rnorm, integer *mode, integer *ipivot, integer *itype, doublereal *wd, doublereal *h__, doublereal *scale, doublereal *z__, doublereal *temp, doublereal *d__);
+/*:ref: dcopy_ 14 5 4 7 4 7 4 */
+/*:ref: xerror_ 14 5 13 4 4 4 124 */
+/*:ref: dnrm2_ 7 3 4 7 4 */
+/*:ref: dscal_ 14 4 4 7 7 4 */
+/*:ref: dasum_ 7 3 4 7 4 */
+/*:ref: idamax_ 4 3 4 7 4 */
+/*:ref: wnlit_ 14 13 7 4 4 4 4 4 4 7 7 7 4 7 12 */
+/*:ref: dswap_ 14 5 4 7 4 7 4 */
+/*:ref: drotmg_ 14 5 7 7 7 7 7 */
+/*:ref: drotm_ 14 6 4 7 4 7 4 7 */
+/*:ref: h12_ 14 11 4 4 4 4 7 4 7 7 4 4 4 */
+/*:ref: daxpy_ 14 6 4 7 7 4 7 4 */

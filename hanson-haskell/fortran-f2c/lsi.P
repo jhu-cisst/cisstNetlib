@@ -1,0 +1,10 @@
+extern int lsi_(doublereal *w, integer *mdw, integer *ma, integer *mg, integer *n, doublereal *prgopt, doublereal *x, doublereal *rnorm, integer *mode, doublereal *ws, integer *ip);
+/*:ref: dasum_ 7 3 4 7 4 */
+/*:ref: dcopy_ 14 5 4 7 4 7 4 */
+/*:ref: hfti_ 14 13 7 4 4 4 7 4 4 7 4 7 7 7 4 */
+/*:ref: ddot_ 7 5 4 7 4 7 4 */
+/*:ref: dswap_ 14 5 4 7 4 7 4 */
+/*:ref: h12_ 14 11 4 4 4 4 7 4 7 7 4 4 4 */
+/*:ref: lpdp_ 14 11 7 4 4 4 4 7 7 7 4 7 4 */
+/*:ref: daxpy_ 14 6 4 7 7 4 7 4 */
+/*:ref: dscal_ 14 4 4 7 7 4 */

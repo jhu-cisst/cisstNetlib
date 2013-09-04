@@ -1,0 +1,5 @@
+extern int fdump_(void);
+extern integer j4save_(integer *iwhich, integer *ivalue, logical *iset);
+extern integer numxer_(integer *nerr);
+extern int s88fmt_(integer *n, integer *ivalue, integer *ifmt);
+extern integer i1mach_(integer *i__);

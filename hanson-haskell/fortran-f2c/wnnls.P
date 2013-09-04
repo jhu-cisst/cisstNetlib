@@ -1,0 +1,4 @@
+extern int wnnls_(doublereal *w, integer *mdw, integer *me, integer *ma, integer *n, integer *l, doublereal *prgopt, doublereal *x, doublereal *rnorm, integer *mode, integer *iwork, doublereal *work);
+/*:ref: xerrwv_ 14 11 13 4 4 4 4 4 4 4 7 7 124 */
+/*:ref: xerror_ 14 5 13 4 4 4 124 */
+/*:ref: wnlsm_ 14 18 7 4 4 4 4 4 7 7 7 4 4 4 7 7 7 7 7 7 */

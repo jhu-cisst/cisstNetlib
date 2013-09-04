@@ -1,0 +1,7 @@
+extern int xerror_(integer *messg, integer *nmessg, integer *nerr, integer *level);
+/*:ref: j4save_ 4 3 4 4 12 */
+/*:ref: xerprt_ 14 3 13 4 124 */
+/*:ref: fdump_ 14 0 */
+/*:ref: xersav_ 14 6 13 4 4 4 4 124 */
+/*:ref: xerabt_ 14 3 13 4 124 */
+/*:ref: xerrwv_ 14 10 4 4 4 4 4 4 4 4 6 6 */

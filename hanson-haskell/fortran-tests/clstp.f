@@ -1,0 +1,641 @@
+      SUBROUTINE CLSTP(KLOG, COND, ISTAT)                               CLS   10
+C
+C     THE EDITING REQUIRED TO CONVERT THIS SUBROUTINE FROM SINGLE TO
+C     DOUBLE PRECISION INVOLVES THE FOLLOWING CHARACTER STRING CHANGES.
+C     USE AN EDITING COMMAND (CHANGE) /STRING-1/(TO)STRING-2/.
+C     (BEGIN THE CHANGES AT THE LINE WITH C++ IN COLS. 1-3.)
+C     /REAL (12 BLANKS)/DOUBLE PRECISION/,/DCOPY/DCOPY/,/DDOT/DDOT/,
+C     /DNRM2/DNRM2/,/DSQRT/DSQRT/,/D0/D0/,/DSCAL/DSCAL/,/DAXPY/DAXPY/,
+C     /DRELPR/DRELPR/,/DSWAP/DSWAP/
+C
+C     REVISED 820305-2000
+C     REVISED YYMMDD-HHMM
+C
+C     THIS SUBROUTINE EXERCISES MOST OF THE MATHEMATICAL FEATURES OF THE
+C     CONSTRAINED LEAST SQUARES SUBPROGRAMS WNNLS( ) AND LSEI( ).
+C     THE PROBLEM THAT IS SOLVED HERE IS OF THE FORM
+C
+C               A*X=B (LEAST SQUARES, A MA BY N),
+C
+C
+C               SUBJECT TO CONSTRAINTS
+C
+C               E*X=F      (CONSTRAINT EQUATIONS, ME BY N),
+C          AND  G*X .GE. H (INEQUALITY CONSTRAINTS, MG BY N).
+C
+C     THE CLASS OF PROBLEMS THAT IS SOLVED HERE IS GENERATED WITH
+C     HADAMARD MATRICES OF ORDER=POWER OF 2.  EACH OF THE MATRICES
+C     A,E, AND G HAVE A SPECIFIED CONDITION NUMBER.  FOR EXAMPLE
+C     A=HADAMARD MATRIX * DIAGONAL MATRIX * HADAMARD MATRIX.
+C     DIAGONAL TERMS OF THE DIAGONAL MATRIX ARE CHOSEN SO THAT A
+C     HAS A GIVEN CONDITION NUMBER.  THE MATRICES E AND G ARE
+C     CONSTRUCTED IN SIMILIAR WAYS.  FURTHER, THE PROBLEM IS CONSTRUCTED
+C     SO THAT THE TRUE SOLUTION IS X=(1,...,1) (TRANSPOSED).
+C     THIS REQUIRES COMPUTING THE RIGHT HAND SIDE VECTORS B,F AND
+C     H.  THE VECTOR B=A*X+COMPONENT ORTHOGONAL TO COL. SPACE OF
+C     A, F=E*X, AND H=G*H-SLACK COMPONENTS.  THESE SLACK COMPONENTS
+C     ARE CHOSEN SO THAT THE FIRST MI OF THE INEQUALITIES ARE
+C     STRICT INEQUALITIES.
+C
+C     THE PROBLEMS DIMENSIONS ARE SPECIFIED BY
+C
+C                     MA = 2**KA
+C                     ME = 2**KE
+C                     MG = 2**KG
+C                     MI = 2**KI
+C                     N  = 2**KN
+C
+C     WHERE KA, KE, KG, KI, AND KN ARE INPUT TO THE SUBROUTINE AS
+C     DISCUSSED BELOW.
+C
+C     THE SUBROUTINE ARGUMENTS ARE AS FOLLOWS
+C
+C     I N P U T
+C
+C     KLOG(*)    - AN INTEGER ARRAY WHOSE DIMENSION IS AT LEAST 5.  THE
+C                  ENTRIES CORRESPOND TO THE POWERS OF 2 NECESSARY
+C                  TO SPECIFY THE PROBLEM DIMENSIONS.  REFERRING TO
+C                  THE ABOVE DISCUSSION, THE ENTRIES OF KLOG(*)
+C                  SHOULD BE SET AS FOLLOWS
+C
+C                       KLOG(1) = KA
+C                       KLOG(2) = KE
+C                       KLOG(3) = KG
+C                       KLOG(4) = KI
+C                       KLOG(5) = KN
+C
+C                  IF KA, KE, KG, OR KI IS LESS THAN ZERO, THE
+C                  CORRESPONDING DIMENSION WILL BE SET TO ZERO.
+C
+C                  KN.LT.0 WILL CAUSE THE SUBROUTINE TO SIMPLY RETURN.
+C
+C     COND(*)    - AN ARRAY WHOSE DIMENSION IS AT LEAST 3.  THE
+C                  ENTRIES COND(1), COND(2), AND COND(3) RESPECTIVELY
+C                  SPECIFY THE CONDITION NUMBER FOR THE LEAST SQUARES
+C                  MATRIX, THE EQUALITY CONSTRAINT MATRIX, AND THE
+C                  INEQUALITY CONSTRAINT MATRIX.
+C
+C     O U T P U T
+C
+C     ISTAT      - AN INTEGER FLAG WHICH INDICATES WHETHER THE SOLUTION
+C                  WAS CORRECTLY COMPUTED.
+C                  =1 NEITHER WNNLS( ) NOR LSEI( ) PASSED THE TEST.
+C                  =2 WNNLS( ) PASSED BUT LSEI( ) FAILED THE TEST.
+C                  =3 LSEI( ) PASSED BUT WNNLS( ) FAILED THE TEST.
+C                  =4 BOTH WNNLS( ) AND LSEI( ) PASSED THE TEST.
+C
+C     THE DIMENSION STATEMENTS BELOW ARE SET UP TO SOLVE PROBLEMS FOR
+C     WHICH NONE OF THE ABOVE LOGARITHMS IS GREATER THAN 5.  TO CHANGE
+C     THESE DIMENSIONS TO SOLVE LARGER PROBLEMS, USE THE FOLLOWING
+C     FORMULAS
+C
+C     DIMENSION W(MA+ME+MG,N+MG+1),X(N+MG),HH(MMAX,MMAX),GG(MMAX,MMAX)
+C     DIMENSION WORK(2*(ME+N)+K+(MG+2)*(N+7)),IWORK(ME+MA+2*MG+N)
+C     DIMENSION SA(MIN(MA,N)),SE(MIN(ME,N)),SG(MIN(MG,N))
+C
+C     WHERE MMAX = MAX(MA,ME,MG,N)
+C           K    = MAX(MA+MG,N)
+C
+C     NOTE THAT IF THE DIMENSIONS ARE CHANGED, THE VALUES ASSIGNED TO
+C     MDW, MDH, AND MDG BELOW MUST BE ALTERED APPROPRIATELY.  THESE
+C     ARE THE RESPECTIVE ROW DIMENSIONS OF THE ARRAYS W(*,*), HH(*,*),
+C     AND GG(*,*).
+C++
+      DOUBLE PRECISION ANSR, BETA, BNORM, CONDA, CONDE, CONDG,
+     *                 DXBYX, GAM, GNORM, ONE, PHI, RHO, RNORME,
+     *                 RNORML, SOLERR, DRELPR, T, TWO, ZERO
+      DOUBLE PRECISION DNRM2, DDOT, DSQRT
+      DOUBLE PRECISION W(96,65), X(64), HH(32,32), GG(32,32)
+      DOUBLE PRECISION WORK(1518)
+      INTEGER   IWORK(0640)
+      DOUBLE PRECISION SA(32), SE(32), SG(32)
+C
+C     THE FOLLOWING DIMENSION STATEMENTS NEED NOT BE ALTERED TO
+C     SOLVE LARGER PROBLEMS.
+      DOUBLE PRECISION COND(3), PRGOPT(4)
+      INTEGER KLOG(5)
+      LOGICAL DONE
+C
+      MDW = 96
+      MDH = 32
+      MDG = 32
+      ZERO = 0.D0
+      ONE = 1.D0
+      TWO = 2.D0
+      ISTAT = 1
+C     COMPUTE THE RELATIVE MACHINE PRECISION.
+      DRELPR = ONE
+   10 IF (ONE+DRELPR.EQ.ONE) GO TO 20
+      DRELPR = DRELPR/TWO
+      GO TO 10
+   20 DRELPR = DRELPR*TWO
+C
+C     SET THE OUTPUT UNIT TO WHICH ERROR MESSAGES WILL BE PRINTED.
+      LOUT = I1MACH(4)
+C
+C     SET UP THE PROBLEM DIMENSIONS
+      KA = KLOG(1)
+      KE = KLOG(2)
+      KG = KLOG(3)
+      KI = KLOG(4)
+      KN = KLOG(5)
+      CONDA = ONE
+      CONDE = ONE
+      CONDG = ONE
+      DONE = KN.LT.0
+      IF (.NOT.(DONE)) GO TO 30
+      RETURN
+   30 MA = 0
+      ME = 0
+      MG = 0
+      N = 0
+C
+C     SET NOISE-TO-SIGNAL RATIO PARAMETER FOR LEAST SQUARES EQUAS.
+C     THIS ESSENTIALLY SPECIFIES THE RATIO
+C
+C                   NORM(RESIDUAL VECTOR)
+C                   ---------------------
+C                       NORM(A*X)
+      ANSR = 0.01
+C
+C     SET UP THE CONDITION NUMBERS FOR THE MATRICES A, E, AND G.
+      IF (KA.GE.0) CONDA = COND(1)
+      IF (KE.GE.0) CONDE = COND(2)
+      IF (KG.GE.0) CONDG = COND(3)
+C
+C     CHECK THE VALIDITY OF THE INPUT
+      IF (.NOT.(.NOT.(KA.LE.5 .AND. KE.LE.5 .AND. KG.LE.5 .AND. KI.LE.5
+     * .AND. KN.LE.5))) GO TO 40
+      WRITE (LOUT,99999)
+      RETURN
+   40 IF (.NOT.(CONDA.LT.ONE .OR. CONDE.LT.ONE .OR. CONDG.LT.ONE)) GO
+     * TO 50
+      WRITE (LOUT,99998)
+99999 FORMAT (/42H KA, KE, KG, KI, AND KN MUST ALL BE .LE. 5, 7H AS REQ,
+     * 53HUIRED BY THE CURRENT SUBPROGRAM DIMENSION STATEMENTS.)
+99998 FORMAT (/46H CONDA, CONDE, AND CONDG MUST ALL BE .GE. ONE.)
+      RETURN
+   50 CONTINUE
+      ICASE = 1
+   60 CONTINUE
+      ISEED = 100001
+      T = RAN(ISEED)
+      ISEED = 0
+C
+C     COMPUTE THE PRE-MULTIPLYING HADAMARD MATRIX FOR E.
+      K = KE
+      ASSIGN 70 TO NGO
+      GO TO 900
+   70 ME = NN
+C
+C     SAVE THE HADAMARD MATRIX.
+      J = 1
+      N20011 = ME
+      GO TO 90
+   80 J = J + 1
+   90 IF ((N20011-J).LT.0) GO TO 100
+      CALL DCOPY(ME, HH(1,J), 1, GG(1,J), 1)
+      GO TO 80
+C
+C     NOW FORM THE POST-MULTIPLYING HADAMARD MATRIX.
+  100 K = KN
+      ASSIGN 110 TO NGO
+      GO TO 900
+  110 N = NN
+C
+C     COMPUTE THE SINGULAR VALUES OF THE MATRIX E.
+C     DISTRIBUTE THEM UNIFORMLY BETWEEN 1. AND CONDE.
+      SE(1) = CONDE
+      MNE = MAX0(1,MIN0(ME,N))
+      SE(MNE) = ONE
+      I = 2
+      N20016 = MNE - 1
+      GO TO 130
+  120 I = I + 1
+  130 IF ((N20016-I).LT.0) GO TO 140
+      SE(I) = ONE + RAN(ISEED)*(CONDE-ONE)
+      GO TO 120
+  140 J = 1
+      N20020 = MNE
+      GO TO 160
+  150 J = J + 1
+  160 IF ((N20020-J).LT.0) GO TO 170
+      CALL DSCAL(ME, SE(J), GG(1,J), 1)
+      GO TO 150
+  170 J = 1
+      N20024 = N
+      GO TO 190
+  180 J = J + 1
+  190 IF ((N20024-J).LT.0) GO TO 230
+      IF (ME.GT.0) W(1,J) = ZERO
+      CALL DCOPY(ME, W(1,J), 0, W(1,J), 1)
+      I = 1
+      N20028 = MNE
+      GO TO 210
+  200 I = I + 1
+  210 IF ((N20028-I).LT.0) GO TO 220
+      CALL DAXPY(ME, HH(I,J), GG(1,I), 1, W(1,J), 1)
+      GO TO 200
+  220 GO TO 180
+C
+C     COMPUTE E*X AND STORE IN W(*,N+1).
+  230 I = 1
+      N20032 = ME
+      GO TO 250
+  240 I = I + 1
+  250 IF ((N20032-I).LT.0) GO TO 260
+      X(1) = ONE
+      W(I,N+1) = DDOT(N,X,0,W(I,1),MDW)
+      GO TO 240
+C
+C     COMPUTE THE PRE-MULTIPLYING HADAMARD MATRIX FOR A.
+  260 K = KA
+      ASSIGN 270 TO NGO
+      GO TO 900
+  270 MA = NN
+C
+C     SAVE THE HADAMARD MATRIX.
+      J = 1
+      N20037 = MA
+      GO TO 290
+  280 J = J + 1
+  290 IF ((N20037-J).LT.0) GO TO 300
+      CALL DCOPY(MA, HH(1,J), 1, GG(1,J), 1)
+      GO TO 280
+C
+C     NOW FORM THE POST-MULTIPLYING HADAMARD MATRIX.
+  300 K = KN
+      ASSIGN 310 TO NGO
+      GO TO 900
+  310 N = NN
+C
+C     COMPUTE THE SINGULAR VALUES OF THE MATRIX A.
+C     DISTRUBUTE THEM UNIFORMLY BETWEEN 1. AND CONDA.
+      SA(1) = CONDA
+      MNA = MAX0(1,MIN0(MA,N))
+      SA(MNA) = ONE
+      I = 2
+      N20042 = MNA - 1
+      GO TO 330
+  320 I = I + 1
+  330 IF ((N20042-I).LT.0) GO TO 340
+      SA(I) = ONE + RAN(ISEED)*(CONDA-ONE)
+      GO TO 320
+  340 J = 1
+      N20046 = MNA
+      GO TO 360
+  350 J = J + 1
+  360 IF ((N20046-J).LT.0) GO TO 370
+      CALL DSCAL(MA, SA(J), GG(1,J), 1)
+      GO TO 350
+  370 J = 1
+      N20050 = N
+      GO TO 390
+  380 J = J + 1
+  390 IF ((N20050-J).LT.0) GO TO 430
+C
+C     COMPUTE THE PRODUCT IN PLACE INTO W(*,*).
+      IF (MA.GT.0) W(ME+1,J) = ZERO
+      CALL DCOPY(MA, W(ME+1,J), 0, W(ME+1,J), 1)
+      I = 1
+      N20054 = MNA
+      GO TO 410
+  400 I = I + 1
+  410 IF ((N20054-I).LT.0) GO TO 420
+      CALL DAXPY(MA, HH(I,J), GG(1,I), 1, W(ME+1,J), 1)
+      GO TO 400
+  420 GO TO 380
+C
+C     COMPUTE A*X AND STORE IN W(*,N+1).
+  430 I = 1
+      N20058 = MA
+      GO TO 450
+  440 I = I + 1
+  450 IF ((N20058-I).LT.0) GO TO 460
+      MEPI = ME + I
+      X(1) = ONE
+      W(MEPI,N+1) = DDOT(N,X,0,W(MEPI,1),MDW)
+      GO TO 440
+  460 BNORM = DNRM2(MA,W(ME+1,N+1),1)
+C
+C     ADD COMPONENTS TO RIGHT SIDE THAT ARE ORTHOGONAL TO COL.
+C     SPACE OF A.
+      K = KA
+      ASSIGN 470 TO NGO
+      GO TO 900
+  470 MA = NN
+      I = N + 1
+      N20063 = MA
+      GO TO 490
+  480 I = I + 1
+  490 IF ((N20063-I).LT.0) GO TO 500
+      T = RAN(ISEED)*BNORM*ANSR
+      CALL DAXPY(MA, T, HH(1,I), 1, W(ME+1,N+1), 1)
+      GO TO 480
+C
+C     COMPUTE THE PRE-MULTIPLYING HADAMARD MATRIX FOR G.
+  500 K = KG
+      ASSIGN 510 TO NGO
+      GO TO 900
+  510 MG = NN
+C
+C     SAVE THE HADAMARD MATRIX.
+      J = 1
+      N20068 = MG
+      GO TO 530
+  520 J = J + 1
+  530 IF ((N20068-J).LT.0) GO TO 540
+      CALL DCOPY(MG, HH(1,J), 1, GG(1,J), 1)
+      GO TO 520
+C
+C     NOW FORM THE POST-MULTIPLYING HADAMARD MATRIX.
+  540 K = KN
+      ASSIGN 550 TO NGO
+      GO TO 900
+  550 N = NN
+C
+C     COMPUTE THE SINGULAR VALUES OF G.
+C     DISTRIBUTE THEM UNIFORMLY BETWEEN 1. AND CONDG.
+      SG(1) = CONDG
+      MNG = MAX0(1,MIN0(MG,N))
+      SG(MNG) = ONE
+      I = 2
+      N20073 = MNG - 1
+      GO TO 570
+  560 I = I + 1
+  570 IF ((N20073-I).LT.0) GO TO 580
+      SG(I) = ONE + RAN(ISEED)*(CONDG-ONE)
+      GO TO 560
+  580 J = 1
+      N20077 = MNG
+      GO TO 600
+  590 J = J + 1
+  600 IF ((N20077-J).LT.0) GO TO 610
+      CALL DSCAL(MG, SG(J), GG(1,J), 1)
+      GO TO 590
+  610 J = 1
+      N20081 = N
+      GO TO 630
+  620 J = J + 1
+  630 IF ((N20081-J).LT.0) GO TO 670
+      MEPMA = ME + MA
+      IF (MG.GT.0) W(MEPMA+1,J) = ZERO
+      CALL DCOPY(MG, W(MEPMA+1,J), 0, W(MEPMA+1,J), 1)
+      I = 1
+      N20085 = MNG
+      GO TO 650
+  640 I = I + 1
+  650 IF ((N20085-I).LT.0) GO TO 660
+      CALL DAXPY(MG, HH(I,J), GG(1,I), 1, W(MEPMA+1,J), 1)
+      GO TO 640
+  660 GO TO 620
+C
+C     COMPUTE G*X AND STORE IN W(*,N+1).
+  670 I = 1
+      N20089 = MG
+      GO TO 690
+  680 I = I + 1
+  690 IF ((N20089-I).LT.0) GO TO 700
+      IROW = I + MEPMA
+      X(1) = ONE
+      W(IROW,N+1) = DDOT(N,X,0,W(IROW,1),MDW)
+      GO TO 680
+C
+C     MAKE FIRST MI=2**KI OF THE INEQUALITIES STRICT.
+  700 IF (.NOT.(KI.GE.0)) GO TO 710
+      MI = 1
+      GO TO 720
+  710 MI = 0
+  720 K = 1
+      N20096 = KI
+      GO TO 740
+  730 K = K + 1
+  740 IF ((N20096-K).LT.0) GO TO 750
+      MI = MI + MI
+      GO TO 730
+  750 GNORM = DNRM2(MG,W(MEPMA+1,N+1),1)
+      I = 1
+      N20100 = MIN0(MI,MG)
+      GO TO 770
+  760 I = I + 1
+  770 IF ((N20100-I).LT.0) GO TO 780
+      IROW = I + MEPMA
+      W(IROW,N+1) = W(IROW,N+1) - RAN(ISEED)*GNORM
+      GO TO 760
+C
+C     OBTAIN THE CONSTRAINED LEAST SQUARES SOLUTION.
+C
+C     NOTE THE LENGTHS OF THE WORK ARRAYS IN IWORK(*).
+  780 IWORK(1) = 1518
+      IWORK(2) = 0640
+      IF (.NOT.(ICASE.EQ.1)) GO TO 810
+C
+C     EXCHANGE POSITIONS OF THE ROWS (A B) AND (G H).
+      NP1 = N + 1
+      DO 790 J=1,NP1
+        IROW = ME + (MA+MG+2)/2
+        CALL DSWAP((MA+MG+1)/2, W(ME+1,J), 1, W(IROW,J), -1)
+  790 CONTINUE
+C
+C     MOVE RT-SIDE TO W(*,N+MG+1).
+      JCOL = N + MG + 1
+      CALL DCOPY(ME+MA+MG, W(1,N+1), 1, W(1,JCOL), 1)
+C
+C     PUT IN SLACK VARIABLE COLS. AS REQUIRED.
+      IF (.NOT.(MG.GT.0)) GO TO 800
+      W(1,N+1) = ZERO
+      CALL DCOPY(MDW*MG, W(1,N+1), 0, W(1,N+1), 1)
+      W(ME+1,N+1) = -ONE
+      CALL DCOPY(MG, W(ME+1,N+1), 0, W(ME+1,N+1), MDW+1)
+  800 CONTINUE
+C
+C     SET THE OPTION (NUMBER 6) FOR WNNLS( ) TO SCALE THE
+C     COLUMNS OF THE MATRIX TO HAVE UNIT LENGTH.
+      PRGOPT(1) = 4
+      PRGOPT(2) = 6
+      PRGOPT(3) = 1
+      PRGOPT(4) = 1
+      CALL WNNLS(W, MDW, ME+MG, MA, N+MG, N, PRGOPT, X, RNORML, MODE,
+     * IWORK, WORK)
+      GO TO 820
+  810 CONTINUE
+C
+C     SET THE OPTION (NUMBER 2) FOR LSEI( ) TO SCALE THE
+C     COLUMNS OF THE MATRIX TO HAVE UNIT LENGTH.
+      PRGOPT(1) = 4
+      PRGOPT(2) = 2
+      PRGOPT(3) = 1
+      PRGOPT(4) = 1
+      CALL LSEI(W, MDW, ME, MA, MG, N, PRGOPT, X, RNORME, RNORML, MODE,
+     * WORK, IWORK)
+  820 CONTINUE
+C
+C     COMPUTE THE RESIDUAL SUM OF SQUARES OF ERRORS.
+      SOLERR = ZERO
+      I = 1
+      N20104 = N
+      GO TO 840
+  830 I = I + 1
+  840 IF ((N20104-I).LT.0) GO TO 850
+      X(I) = ONE - X(I)
+      SOLERR = SOLERR + X(I)**2
+      GO TO 830
+  850 SOLERR = DSQRT(SOLERR)
+C
+C     TEST SIZE OF ERROR (REF. LAWSON-HANSON, PAGE 51 AND CH. 16)
+      PHI = 100.
+      T = N
+      DXBYX = SOLERR/DSQRT(T)
+      RHO = ONE
+      IF (BNORM.NE.ZERO) RHO = RNORML/BNORM
+      GAM = (6*MAX0(MA,N)-3*MIN0(MA,N))*MIN0(MA,N)
+      BETA = CONDA*(ONE+CONDA*RHO)*GAM*PHI
+      IF (.NOT.(DXBYX+BETA.EQ.BETA)) GO TO 860
+      ISTAT = ISTAT + ICASE
+      GO TO 870
+  860 CONTINUE
+      IF (MA.EQ.0 .AND. MODE.EQ.0) ISTAT = ISTAT + ICASE
+  870 CONTINUE
+      IF (.NOT.(ICASE.EQ.1)) GO TO 880
+      WRITE (LOUT,99997) RNORML
+99997 FORMAT (18H0LEAST SQS. RESID., E012.5, 2X, 12HFOR WNNLS( )/
+     * 30H ERRORS, 1-X(I), FOR WNNLS( ).)
+      WRITE (LOUT,99996) (I,X(I),I=1,N)
+99996 FORMAT (4(I4, E012.5))
+      GO TO 890
+  880 CONTINUE
+      WRITE (LOUT,99995) RNORML, IWORK(1), IWORK(2)
+99995 FORMAT (18H0LEAST SQS. RESID., E012.5, 2X, 11HFOR LSEI( )/
+     * 41H COMP. RANK OF E, COMP. RANK OF REDUCED A, 2I4/11H ERRORS, 1-,
+     * 18HX(I), FOR LSEI( ).)
+      WRITE (LOUT,99996) (I,X(I),I=1,N)
+  890 CONTINUE
+      IF (ICASE.EQ.2) RETURN
+      ICASE = 2
+      GO TO 60
+C
+C     PROCEDURE (GET HADAMARD MATRIX)
+  900 NN = 0
+      IF (.NOT.(K.GE.0)) GO TO 940
+      NN = 1
+      I = 1
+      N20114 = K
+      GO TO 920
+  910 I = I + 1
+  920 IF ((N20114-I).LT.0) GO TO 930
+      NN = NN + NN
+      GO TO 910
+  930 GO TO 950
+  940 NN = 0
+      GO TO 1080
+C
+C     PLACE THE SYMMETRIC HADAMARD MATRIX IN THE ARRAY HH(*,*).
+  950 HH(1,1) = ONE
+      NN = 1
+      L = 1
+      N20118 = K
+      GO TO 970
+  960 L = L + 1
+  970 IF ((N20118-L).LT.0) GO TO 1040
+      J = 1
+      N20122 = NN
+      GO TO 990
+  980 J = J + 1
+  990 IF ((N20122-J).LT.0) GO TO 1000
+      CALL DCOPY(NN, HH(1,J), 1, HH(NN+1,J), 1)
+      GO TO 980
+ 1000 J = 1
+      N20126 = NN
+      GO TO 1020
+ 1010 J = J + 1
+ 1020 IF ((N20126-J).LT.0) GO TO 1030
+      JPNN = J + NN
+      CALL DCOPY(2*NN, HH(1,J), 1, HH(1,JPNN), 1)
+      CALL DSCAL(NN, -ONE, HH(NN+1,JPNN), 1)
+      GO TO 1010
+ 1030 NN = NN + NN
+      GO TO 960
+C
+C     MAKE THE MATRIX ORTHOGONAL BY SCALING THE ENTRIES.
+ 1040 T = NN
+      T = ONE/DSQRT(T)
+      J = 1
+      N20130 = NN
+      GO TO 1060
+ 1050 J = J + 1
+ 1060 IF ((N20130-J).LT.0) GO TO 1070
+      CALL DSCAL(NN, T, HH(1,J), 1)
+      GO TO 1050
+ 1070 CONTINUE
+ 1080 GO TO NGO, (70, 110, 270, 310, 470, 510, 550)
+      END
+
+C     PROGRAM CLSTST (INPUT,OUTPUT,TAPE5=INPUT,TAPE6=OUTPUT)            MAN   10
+C                                                                       MAN   20
+C     TO CONVERT THE CONSTRAINED LEAST SQUARES PACKAGE OF SUBPROGRAMS   MAN   30
+C     TO DOUBLE PRECISION, FOLLOW THE EDITING INSTRUCTIONS NEAR THE     MAN   40
+C     BEGINNING OF THE FOLLOWING SUBPROGRAMS                            MAN   50
+C     LSEI(), LSI(), LPDP(), WNNLS(), WNLSM(), WNLIT(),                 MAN   60
+C     HFTI(), H12(), DIFF(), AND THE TESTING SUBPROGRAM CLSTP().        MAN   70
+C     REVISED 820305-2000                                               MAN   80
+C     REVISED YYMMDD-HHMM                                               MAN   90
+C                                                                       MAN  100
+C                                                                       MAN  110
+C     CHANGE STRING /DOUBLE PRECISION /DOUBLE PRECISION/, AND           MAN  120
+C     CHANGE STRING /E12/D12/                                           MAN  130
+      DOUBLE PRECISION COND(3)                                          MAN  140
+      INTEGER   KLOG(5)                                                 MAN  150
+      LOGICAL DONE                                                      MAN  160
+C                                                                       MAN  170
+      LIN = 5                                                           MAN  180
+      LOUT = I1MACH(4)                                                  MAN  190
+C                                                                       MAN  200
+C                                                                       MAN  210
+C     READ IN THE LOGS OF THE VARIOUS DIMENSIONS.                       MAN  220
+   10 READ (LIN,99999) (KLOG(I),I=1,5)                                  MAN  230
+99999 FORMAT (5I5)                                                      MAN  240
+      DONE = KLOG(5).LT.0                                               MAN  250
+      IF (.NOT.(DONE)) GO TO 20                                         MAN  260
+      GO TO 30                                                          MAN  270
+C                                                                       MAN  280
+C     READ THE CONDITION NUMBERS FOR THE THREE MATRICES.                MAN  290
+   20 READ (LIN,99998) (COND(I),I=1,3)                                  MAN  300
+99998 FORMAT (3F10.0)                                                   MAN  310
+C                                                                       MAN  320
+      WRITE (LOUT,99997) KLOG, COND                                     MAN  330
+99997 FORMAT (/////17H KLOG(*) ARRAY = , 5I5/17H COND(*) ARRAY = ,      MAN  340
+     * 3E12.4)                                                          MAN  350
+C                                                                       MAN  360
+C     CALL TESTING SUBPROGRAM TO FORM CONSTRAINED LEAST SQUARES         MAN  370
+C     SYSTEM AND SOLVE IT.                                              MAN  380
+      CALL CLSTP(KLOG, COND, ISTAT)                                     MAN  390
+C                                                                       MAN  400
+      WRITE (LOUT,99996) ISTAT                                          MAN  410
+99996 FORMAT (/23H FROM CLSTP( ), ISTAT =, I2, 2X, 16H(ISTAT=4 IS GOOD/ MAN  420
+     * 27X, 24H ISTAT=1,2,3 MAY BE BAD))                                MAN  430
+C                                                                       MAN  440
+      GO TO 10                                                          MAN  450
+   30 STOP                                                              MAN  460
+      END                                                               MAN  470
+
+      REAL FUNCTION RAN(K)                                              RAN   10
+C
+C     RANDOM NUMBER GENERATOR - BASED ON ALGORITHM 266
+C      BY PIKE AND HILL (MODIFIED BY HANSSON)
+C      COLLECTED ALG. FROM CACM.
+C
+C     THIS SUBPROGRAM IS INTENDED FOR USE ON COMPUTERS WITH
+C      FIXED POINT WORDLENGTH OF AT LEAST 29 BITS.  IT IS
+C      BEST IF THE FLOATING POINT SIGNIFICAND HAS AT MOST
+C      29 BITS.
+C
+      INTEGER IY,K
+      DATA IY/100001/
+C
+      IF(K.GT.0) IY = K
+      IY = IY * 125
+      IY = IY - (IY/2796203) * 2796203
+      RAN = FLOAT(IY) / 2796203.0E0
+      RETURN
+C     ---------- LAST CARD OF RAN ----------
+      END

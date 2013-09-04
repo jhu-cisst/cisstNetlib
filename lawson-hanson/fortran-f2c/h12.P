@@ -1,0 +1,1 @@
+extern int h12_(integer *mode, integer *lpivot, integer *l1, integer *m, doublereal *u, integer *iue, doublereal *up, doublereal *c__, integer *ice, integer *icv, integer *ncv);

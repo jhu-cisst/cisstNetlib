@@ -1,0 +1,27 @@
+#
+# $Id$
+#
+# Author(s):  Anton Deguet
+# Created on: 2012-12-09
+#
+# (C) Copyright 2012-2013 Johns Hopkins University (JHU), All Rights
+# Reserved.
+#
+
+project (cisstNetlib-wrappers C)
+
+set (cisstNetlib_SOURCES
+     cisstNetlib-lapack.c
+     cisstNetlib-hanson-haskell.c
+     cisstNetlib-lawson-hanson.c)
+
+if (CISSTNETLIB_C_BASED)
+  add_definitions (-DCISSTNETLIB_C_BASED)
+endif (CISSTNETLIB_C_BASED)
+
+add_library (cisstNetlib ${cisstNetlib_SOURCES})
+
+install (TARGETS cisstNetlib
+         RUNTIME DESTINATION bin
+         LIBRARY DESTINATION lib
+         ARCHIVE DESTINATION lib)

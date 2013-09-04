@@ -1,0 +1,3 @@
+extern int svdrs_(doublereal *a, integer *mda, integer *m1, integer *n1, doublereal *b, integer *mdb, integer *nb, doublereal *s, doublereal *work);
+/*:ref: h12_ 14 11 4 4 4 4 7 4 7 7 4 4 4 */
+/*:ref: qrbd_ 14 10 4 7 7 4 7 4 4 7 4 4 */

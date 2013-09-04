@@ -1,0 +1,6 @@
+extern int xerrwv_(integer *messg, integer *nmessg, integer *nerr, integer *level, integer *ni, integer *i1, integer *i2, integer *nr, real *r1, real *r2);
+/*:ref: j4save_ 4 3 4 4 12 */
+/*:ref: fdump_ 14 0 */
+/*:ref: xerctl_ 14 5 4 4 4 4 4 */
+/*:ref: xgetua_ 14 2 4 4 */
+/*:ref: i1mach_ 4 1 4 */

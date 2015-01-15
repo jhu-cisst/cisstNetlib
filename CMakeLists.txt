@@ -1,18 +1,23 @@
 #
-# $Id$
-#
 # Author(s):  Anton Deguet
 # Created on: 2012-12-09
 #
-# (C) Copyright 2012-2013 Johns Hopkins University (JHU), All Rights
-# Reserved.
+# (C) Copyright 2012-2015 Johns Hopkins University (JHU), All Rights Reserved.
 #
 
 # some older versions of CMake don't handle external packages properly
 cmake_minimum_required(VERSION 2.8.5)
 
+# Auto detect if Fortran compiler has been installed
+enable_language (Fortran OPTIONAL)
+if (CMAKE_Fortran_COMPILER_WORKS)
+  set (CISSTNETLIB_LANGUAGE "Fortran" CACHE STRING "C, Fortran \(exact match\)" FORCE)
+else ()
+  set (CISSTNETLIB_LANGUAGE "C" CACHE STRING "C, Fortran \(exact match\)" FORCE)
+endif ()
+
+
 # --- determine language, C or Fortran
-set (CISSTNETLIB_LANGUAGE "undefined" CACHE STRING "C, Fortran \(exact match\)")
 set (_languageIsValid OFF)
 if ("${CISSTNETLIB_LANGUAGE}" STREQUAL "C")
   set (_languageIsValid ON)
@@ -41,18 +46,11 @@ else (APPLE)
     endif (CMAKE_CL_64)
   else (WIN32)
     # we assume Linux
-    set (CISSTNETLIB_ARCHITECTURE "undefined" CACHE STRING "i686, x86_64 \(exact match\)")
-    set (_architectureIsValid OFF)
-    if ("${CISSTNETLIB_ARCHITECTURE}" STREQUAL "i686")
-      set (_architectureIsValid ON)
-    else ("${CISSTNETLIB_ARCHITECTURE}" STREQUAL "i686")
-      if ("${CISSTNETLIB_ARCHITECTURE}" STREQUAL "x86_64")
-        set (_architectureIsValid ON)
-      endif ("${CISSTNETLIB_ARCHITECTURE}" STREQUAL "x86_64")
-    endif ("${CISSTNETLIB_ARCHITECTURE}" STREQUAL "i686")
-    if (NOT ${_architectureIsValid})
-      message (FATAL_ERROR "CISSTNETLIB_ARCHITECTURE must be either \"i686\" or \"x86_64\"")
-    endif (NOT ${_architectureIsValid})
+    if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+      set (CISSTNETLIB_ARCHITECTURE "x86_64")
+    else ()
+      set (CISSTNETLIB_ARCHITECTURE "i686")
+    endif ()
     # end of Linux case
   endif (WIN32)
 endif (APPLE)

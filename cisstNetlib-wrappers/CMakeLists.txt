@@ -19,6 +19,10 @@ if (CISSTNETLIB_C_BASED)
   add_definitions (-DCISSTNETLIB_C_BASED)
 endif (CISSTNETLIB_C_BASED)
 
+if (NOT WIN32)
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+endif (NOT WIN32)
+
 add_library (cisstNetlib ${cisstNetlib_SOURCES})
 
 install (TARGETS cisstNetlib

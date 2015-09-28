@@ -9,11 +9,13 @@
 cmake_minimum_required(VERSION 2.8.5)
 
 # Auto detect if Fortran compiler has been installed
-enable_language (Fortran OPTIONAL)
-if (CMAKE_Fortran_COMPILER_WORKS)
-  set (CISSTNETLIB_LANGUAGE "Fortran" CACHE STRING "C, Fortran \(exact match\)" FORCE)
-else ()
-  set (CISSTNETLIB_LANGUAGE "C" CACHE STRING "C, Fortran \(exact match\)" FORCE)
+if (NOT CISSTNETLIB_LANGUAGE)
+  enable_language (Fortran OPTIONAL)
+  if (CMAKE_Fortran_COMPILER_WORKS)
+    set (CISSTNETLIB_LANGUAGE "Fortran" CACHE STRING "C, Fortran \(exact match\)" FORCE)
+  else ()
+    set (CISSTNETLIB_LANGUAGE "C" CACHE STRING "C, Fortran \(exact match\)" FORCE)
+  endif ()
 endif ()
 
 

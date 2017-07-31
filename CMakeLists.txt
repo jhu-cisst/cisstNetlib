@@ -82,6 +82,11 @@ if (NOT WIN32)
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
 endif (NOT WIN32)
 
+# --- set path for generated libraries
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
+
 # --- get and compile lapack
 include (ExternalProject)
 
@@ -150,6 +155,17 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/include/cisstNetlib/cisstNetlib-type
                "${CMAKE_CURRENT_SOURCE_DIR}/include/cisstNetlib/cisstNetlib-hanson-haskell.h"
                "${CMAKE_CURRENT_SOURCE_DIR}/include/cisstNetlib/cisstNetlib-lawson-hanson.h"
          DESTINATION "include/cisstNetlib/")
+# copy all include files in current binary tree so we can use local build tree as an install tree
+add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/include/cisstNetlib/cisstNetlib-lapack.h"
+                    "${CMAKE_CURRENT_BINARY_DIR}/include/cisstNetlib")
+add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/include/cisstNetlib/cisstNetlib-hanson-haskell.h"
+                    "${CMAKE_CURRENT_BINARY_DIR}/include/cisstNetlib")
+add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/include/cisstNetlib/cisstNetlib-lawson-hanson.h"
+                    "${CMAKE_CURRENT_BINARY_DIR}/include/cisstNetlib")
+
 add_subdirectory (cisstNetlib-wrappers)
 add_dependencies (cisstNetlib cisstNetlib_${CISSTNETLIB_LANGUAGE})
 
@@ -162,35 +178,55 @@ endif (WIN32)
 
 
 if (CISSTNETLIB_C_BASED)
-  # --- C - find and install all libraries with new names
+  # --- C - find and install all libraries with new names, also copy in current binary so we can use local build as an install tree
   set (CISSTNETLIB_lapack_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/SRC${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy ${CISSTNETLIB_lapack_lib}
+                      "${CMAKE_CURRENT_BINARY_DIR}/lib/${newFileName}")
   install (FILES "${CISSTNETLIB_lapack_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
   set (CISSTNETLIB_blas_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/BLAS/SRC${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy ${CISSTNETLIB_blas_lib}
+                      "${CMAKE_CURRENT_BINARY_DIR}/lib/${newFileName}")
   install (FILES "${CISSTNETLIB_blas_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
   # - note: for we don't know what reason the f2c has a static prefic "lib" in F2CLIBS/libf2c/CMakeLists.txt
   set (CISSTNETLIB_f2c_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/F2CLIBS/libf2c${LIB_SUBDIR}libf2c${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_f2c${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy ${CISSTNETLIB_f2c_lib}
+                      "${CMAKE_CURRENT_BINARY_DIR}/lib/${newFileName}")
   install (FILES "${CISSTNETLIB_f2c_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_f2c${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
 else (CISSTNETLIB_C_BASED)
 
   # --- Fortran - find and install all libraries with new names
   set (CISSTNETLIB_lapack_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/lib${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy ${CISSTNETLIB_lapack_lib}
+                      "${CMAKE_CURRENT_BINARY_DIR}/lib/${newFileName}")
   install (FILES "${CISSTNETLIB_lapack_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
   set (CISSTNETLIB_blas_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/lib${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy ${CISSTNETLIB_blas_lib}
+                      "${CMAKE_CURRENT_BINARY_DIR}/lib/${newFileName}")
   install (FILES "${CISSTNETLIB_blas_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
   # hard coded to find gfortran runtime library
   # use name of static library to find path to shared library :-)
@@ -207,6 +243,9 @@ else (CISSTNETLIB_C_BASED)
   install (FILES "${cisstNetlib_fortran_runtime}"
            DESTINATION "lib"
            RENAME "${CMAKE_SHARED_LIBRARY_PREFIX}cisstNetlib_gfortran${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy ${cisstNetlib_fortran_runtime}
+                      "${CMAKE_CURRENT_BINARY_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}cisstNetlib_gfortran${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
   execute_process (COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libgcc.a
                    OUTPUT_VARIABLE cisstNetlib_gcc_runtime
@@ -215,6 +254,9 @@ else (CISSTNETLIB_C_BASED)
   install (FILES "${cisstNetlib_gcc_runtime}"
            DESTINATION "lib"
            RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_gcc${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy ${cisstNetlib_gcc_runtime}
+                      "${CMAKE_CURRENT_BINARY_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}cisstNetlib_gcc${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
   execute_process (COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libquadmath.a
                    OUTPUT_VARIABLE cisstNetlib_quadmath
@@ -223,6 +265,9 @@ else (CISSTNETLIB_C_BASED)
   install (FILES "${cisstNetlib_quadmath}"
            DESTINATION "lib"
            RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_quadmath${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  add_custom_command (TARGET ${CISSTNETLIB_EXTERNAL_NAME} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy ${cisstNetlib_quadmath}
+                      "${CMAKE_CURRENT_BINARY_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}cisstNetlib_quadmath${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 endif (CISSTNETLIB_C_BASED)
 

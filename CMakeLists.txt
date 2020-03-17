@@ -263,7 +263,7 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/CisstNetlibConfig.cmake"
          DESTINATION "cmake/")
 
 # --- prepare installer, tgz on unix systems
-set (CPACK_GENERATOR "TGZ;ZIP")
+set (CPACK_GENERATOR "TGZ;ZIP;DEB")
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "JHU CISST binary distribution of netlib.org routines (${CISSTNETLIB_LANGUAGE} version)")
 set (CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CISSTNETLIB_ARCHITECTURE}")
 set (CPACK_PACKAGE_NAME "cisstNetlib-${CISSTNETLIB_LANGUAGE}")
@@ -272,5 +272,6 @@ set (CPACK_PACKAGE_VERSION "3.0.0")
 set (CPACK_PACKAGE_VERSION_MAJOR "3")
 set (CPACK_PACKAGE_VERSION_MINOR "0")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
+set (CPACK_DEBIAN_PACKAGE_MAINTAINER "anton.deguet@jhu.edu")
 
 include (CPack)

@@ -82,6 +82,11 @@ if (NOT WIN32)
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
 endif (NOT WIN32)
 
+# --- set path for generated libraries
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
+
 # --- get and compile lapack
 include (ExternalProject)
 
@@ -150,6 +155,7 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/include/cisstNetlib/cisstNetlib-type
                "${CMAKE_CURRENT_SOURCE_DIR}/include/cisstNetlib/cisstNetlib-hanson-haskell.h"
                "${CMAKE_CURRENT_SOURCE_DIR}/include/cisstNetlib/cisstNetlib-lawson-hanson.h"
          DESTINATION "include/cisstNetlib/")
+
 add_subdirectory (cisstNetlib-wrappers)
 add_dependencies (cisstNetlib cisstNetlib_${CISSTNETLIB_LANGUAGE})
 
@@ -162,35 +168,40 @@ endif (WIN32)
 
 
 if (CISSTNETLIB_C_BASED)
-  # --- C - find and install all libraries with new names
+  # --- C - find and install all libraries with new names, also copy in current binary so we can use local build as an install tree
   set (CISSTNETLIB_lapack_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/SRC${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
   install (FILES "${CISSTNETLIB_lapack_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
   set (CISSTNETLIB_blas_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/BLAS/SRC${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
   install (FILES "${CISSTNETLIB_blas_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
   # - note: for we don't know what reason the f2c has a static prefic "lib" in F2CLIBS/libf2c/CMakeLists.txt
   set (CISSTNETLIB_f2c_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/F2CLIBS/libf2c${LIB_SUBDIR}libf2c${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_f2c${CMAKE_STATIC_LIBRARY_SUFFIX}")
   install (FILES "${CISSTNETLIB_f2c_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_f2c${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
 else (CISSTNETLIB_C_BASED)
 
   # --- Fortran - find and install all libraries with new names
   set (CISSTNETLIB_lapack_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/lib${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
   install (FILES "${CISSTNETLIB_lapack_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
   set (CISSTNETLIB_blas_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/lib${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set (newFileName "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
   install (FILES "${CISSTNETLIB_blas_lib}"
            DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_blas${CMAKE_STATIC_LIBRARY_SUFFIX}")
+           RENAME "${newFileName}")
 
   # hard coded to find gfortran runtime library
   # use name of static library to find path to shared library :-)
@@ -207,7 +218,6 @@ else (CISSTNETLIB_C_BASED)
   install (FILES "${cisstNetlib_fortran_runtime}"
            DESTINATION "lib"
            RENAME "${CMAKE_SHARED_LIBRARY_PREFIX}cisstNetlib_gfortran${CMAKE_SHARED_LIBRARY_SUFFIX}")
-
   execute_process (COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libgcc.a
                    OUTPUT_VARIABLE cisstNetlib_gcc_runtime
                    OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -215,7 +225,6 @@ else (CISSTNETLIB_C_BASED)
   install (FILES "${cisstNetlib_gcc_runtime}"
            DESTINATION "lib"
            RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_gcc${CMAKE_STATIC_LIBRARY_SUFFIX}")
-
   execute_process (COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libquadmath.a
                    OUTPUT_VARIABLE cisstNetlib_quadmath
                    OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -254,7 +263,7 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/CisstNetlibConfig.cmake"
          DESTINATION "cmake/")
 
 # --- prepare installer, tgz on unix systems
-set (CPACK_GENERATOR "TGZ;ZIP")
+set (CPACK_GENERATOR "TGZ;ZIP;DEB")
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "JHU CISST binary distribution of netlib.org routines (${CISSTNETLIB_LANGUAGE} version)")
 set (CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CISSTNETLIB_ARCHITECTURE}")
 set (CPACK_PACKAGE_NAME "cisstNetlib-${CISSTNETLIB_LANGUAGE}")
@@ -263,5 +272,6 @@ set (CPACK_PACKAGE_VERSION "3.0.0")
 set (CPACK_PACKAGE_VERSION_MAJOR "3")
 set (CPACK_PACKAGE_VERSION_MINOR "0")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
+set (CPACK_DEBIAN_PACKAGE_MAINTAINER "anton.deguet@jhu.edu")
 
 include (CPack)

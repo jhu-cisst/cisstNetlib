@@ -25,8 +25,7 @@ get_filename_component (cisstNetlib_CONFIG_FILE_DIR
 # find include directory
 find_path (cisstNetlib_INCLUDE_DIR
            NAMES cisstNetlib.h
-           PATHS "${cisstNetlib_CONFIG_FILE_DIR}/../../include"
-)
+           PATHS "${cisstNetlib_CONFIG_FILE_DIR}/../../include;${cisstNetlib_CONFIG_FILE_DIR}/../include")
 
 # find all libraries
 set (cisstNetlib_LIBRARIES_SHORT_NAMES
@@ -36,7 +35,7 @@ mark_as_advanced (cisstNetlib_LIBRARIES_SHORT_NAMES)
 
 foreach (lib ${cisstNetlib_LIBRARIES_SHORT_NAMES})
   find_library (cisstNetlib_LIBRARY_${lib} ${lib}
-                PATHS "${cisstNetlib_CONFIG_FILE_DIR}/../../lib")
+                PATHS "${cisstNetlib_CONFIG_FILE_DIR}/../../lib;${cisstNetlib_CONFIG_FILE_DIR}/../lib")
   mark_as_advanced (cisstNetlib_LIBRARY_${lib})
 endforeach (lib ${cisstNetlib_LIBRARIES_SHORT_NAMES})
 

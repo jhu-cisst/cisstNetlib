@@ -2,7 +2,7 @@
 # Author(s):  Anton Deguet
 # Created on: 2012-12-09
 #
-# (C) Copyright 2012-2015 Johns Hopkins University (JHU), All Rights Reserved.
+# (C) Copyright 2012-2021 Johns Hopkins University (JHU), All Rights Reserved.
 #
 
 # some older versions of CMake don't handle external packages properly
@@ -260,7 +260,7 @@ configure_file (CisstNetlibConfig.cmake.in
                 "${CMAKE_CURRENT_BINARY_DIR}/CisstNetlibConfig.cmake"
                 @ONLY)
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/CisstNetlibConfig.cmake"
-         DESTINATION "cmake/")
+         DESTINATION "share/cisstNetlib")
 
 # --- prepare installer, tgz on unix systems
 set (CPACK_GENERATOR "TGZ;ZIP;DEB")

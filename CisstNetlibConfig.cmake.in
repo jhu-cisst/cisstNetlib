@@ -1,11 +1,8 @@
 #
-# $Id$
-#
 # Author(s):  Anton Deguet
 # Created on: 2012-12-09
 #
-# (C) Copyright 2012-2013 Johns Hopkins University (JHU), All Rights
-# Reserved.
+# (C) Copyright 2012-2021 Johns Hopkins University (JHU), All Rights Reserved.
 #
 # Provide cisstNetlibConfig.cmake, defines includes and libraries
 #
@@ -28,7 +25,7 @@ get_filename_component (cisstNetlib_CONFIG_FILE_DIR
 # find include directory
 find_path (cisstNetlib_INCLUDE_DIR
            NAMES cisstNetlib.h
-           PATHS "${cisstNetlib_CONFIG_FILE_DIR}/../include"
+           PATHS "${cisstNetlib_CONFIG_FILE_DIR}/../../include"
 )
 
 # find all libraries
@@ -39,7 +36,7 @@ mark_as_advanced (cisstNetlib_LIBRARIES_SHORT_NAMES)
 
 foreach (lib ${cisstNetlib_LIBRARIES_SHORT_NAMES})
   find_library (cisstNetlib_LIBRARY_${lib} ${lib}
-                PATHS "${cisstNetlib_CONFIG_FILE_DIR}/../lib")
+                PATHS "${cisstNetlib_CONFIG_FILE_DIR}/../../lib")
   mark_as_advanced (cisstNetlib_LIBRARY_${lib})
 endforeach (lib ${cisstNetlib_LIBRARIES_SHORT_NAMES})
 

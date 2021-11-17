@@ -79,7 +79,7 @@ If you need to compile your own version of ''cisstNetlib'', you might want to re
 
 ## cisstNetlib with Lapack, fortran or C and CMake (current)
 
-The code for this approach is in the repository, branches, CMake-C.
+The code for this approach is in the repository.
 
 To build this code, you must first decide if you want to compile using the C version or Fortran version.  Please note that both come with a C wrapper so they are both designed to be called from C libraries (such as the ''cisst'' libraries).  We strongly recommend to use the Fortran version if you have a Fortran compiler available (on Linux this is trivial, on Mac OS packaging systems such as macports make it pretty easy).
 

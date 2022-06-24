@@ -1,14 +1,11 @@
 #
-# $Id$
-#
 # Author(s):  Anton Deguet
 # Created on: 2012-12-09
 #
-# (C) Copyright 2012-2013 Johns Hopkins University (JHU), All Rights
-# Reserved.
+# (C) Copyright 2012-2022 Johns Hopkins University (JHU), All Rights Reserved.
 #
 
-project (cisstNetlib-wrappers C)
+project (cisstNetlib-wrappers LANGUAGES C VERSION ${cisstNetlib_VERSION})
 
 set (cisstNetlib_SOURCES
      cisstNetlib-lapack.c

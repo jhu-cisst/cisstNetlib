@@ -85,9 +85,7 @@ else ("${CISSTNETLIB_LANGUAGE}" STREQUAL "C")
   set (CISSTNETLIB_FORTRAN_BASED 1)
   set (CISSTNETLIB_LAPACK_URL "https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.10.1.tar.gz")
   set (CISSTNETLIB_LAPACK_URL_MD5 722407217a080a0012ae3d6913fb8008)
-  # 3.5.0 set (CISSTNETLIB_LAPACK_URL_MD5 b1d3e3e425b2e44a06760ff173104bdf)
-
-  # set (CISSTNETLIB_LAPACK_URL "http://www.netlib.org/lapack/lapack-3.5.0.tgz")
+  # older MD5 if needed
   # 3.5.0 set (CISSTNETLIB_LAPACK_URL_MD5 b1d3e3e425b2e44a06760ff173104bdf)
   # 3.4.2 set (CISSTNETLIB_LAPACK_URL_MD5 61bf1a8a4469d4bdb7604f5897179478)
 endif ("${CISSTNETLIB_LANGUAGE}" STREQUAL "C")

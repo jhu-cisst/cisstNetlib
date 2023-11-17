@@ -185,9 +185,6 @@ else (WIN32)
   set (LIB_SUBDIR "/")
 endif (WIN32)
 
-* updated lapack version to 3.10.1
-* added project in subdirectories
-* force gfortran-9 when compiling on Ubuntu 22.04
 if (CISSTNETLIB_C_BASED)
   # --- C - find and install all libraries with new names, also copy in current binary so we can use local build as an install tree
   set (CISSTNETLIB_lapack_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/SRC${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")

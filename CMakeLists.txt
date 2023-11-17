@@ -2,7 +2,7 @@
 # Author(s):  Anton Deguet
 # Created on: 2012-12-09
 #
-# (C) Copyright 2012-2022 Johns Hopkins University (JHU), All Rights Reserved.
+# (C) Copyright 2012-2023 Johns Hopkins University (JHU), All Rights Reserved.
 #
 
 # some older versions of CMake don't handle external packages properly
@@ -48,9 +48,9 @@ endif (NOT ${_languageIsValid})
 
 # --- cisstNetlib configuration
 if ("${CISSTNETLIB_LANGUAGE}" STREQUAL "Fortran")
-  project (cisstNetlib LANGUAGES Fortran C VERSION 3.0.0)
+  project (cisstNetlib LANGUAGES Fortran C VERSION 3.1.0)
 else ()
-  project (cisstNetlib LANGUAGES C VERSION 3.0.0)
+  project (cisstNetlib LANGUAGES C VERSION 3.1.0)
 endif ()
 
 # --- determine architecture
@@ -185,7 +185,9 @@ else (WIN32)
   set (LIB_SUBDIR "/")
 endif (WIN32)
 
-
+* updated lapack version to 3.10.1
+* added project in subdirectories
+* force gfortran-9 when compiling on Ubuntu 22.04
 if (CISSTNETLIB_C_BASED)
   # --- C - find and install all libraries with new names, also copy in current binary so we can use local build as an install tree
   set (CISSTNETLIB_lapack_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/SRC${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -287,9 +289,9 @@ set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "JHU CISST binary distribution of netlib.
 set (CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CISSTNETLIB_ARCHITECTURE}")
 set (CPACK_PACKAGE_NAME "cisstNetlib-${CISSTNETLIB_LANGUAGE}")
 set (CPACK_PACKAGE_VENDOR "JHU")
-set (CPACK_PACKAGE_VERSION "3.0.0")
+set (CPACK_PACKAGE_VERSION "3.1.0")
 set (CPACK_PACKAGE_VERSION_MAJOR "3")
-set (CPACK_PACKAGE_VERSION_MINOR "0")
+set (CPACK_PACKAGE_VERSION_MINOR "1")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
 set (CPACK_DEBIAN_PACKAGE_MAINTAINER "anton.deguet@jhu.edu")
 set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)

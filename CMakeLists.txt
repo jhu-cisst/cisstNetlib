@@ -2,19 +2,32 @@
 # Author(s):  Anton Deguet
 # Created on: 2012-12-09
 #
-# (C) Copyright 2012-2015 Johns Hopkins University (JHU), All Rights Reserved.
+# (C) Copyright 2012-2023 Johns Hopkins University (JHU), All Rights Reserved.
 #
 
 # some older versions of CMake don't handle external packages properly
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 3.10)
+
+if (UNIX)
+  find_program (LSB_RELEASE_EXEC lsb_release)
+  execute_process(COMMAND ${LSB_RELEASE_EXEC} -is
+                  OUTPUT_VARIABLE LSB_RELEASE_ID
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND ${LSB_RELEASE_EXEC} -rs
+                  OUTPUT_VARIABLE LSB_RELEASE_RELEASE
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if ("${LSB_RELEASE_ID}" STREQUAL "Ubuntu" AND "${LSB_RELEASE_RELEASE}" STREQUAL "22.04")
+    set (CMAKE_Fortran_COMPILER "gfortran-9")
+  endif ()
+endif (UNIX)
 
 # Auto detect if Fortran compiler has been installed
 if (NOT CISSTNETLIB_LANGUAGE)
   enable_language (Fortran OPTIONAL)
   if (CMAKE_Fortran_COMPILER_WORKS)
-    set (CISSTNETLIB_LANGUAGE "Fortran" CACHE STRING "C, Fortran \(exact match\)" FORCE)
+    set (CISSTNETLIB_LANGUAGE "Fortran" CACHE STRING "C or Fortran \(exact match\)" FORCE)
   else ()
-    set (CISSTNETLIB_LANGUAGE "C" CACHE STRING "C, Fortran \(exact match\)" FORCE)
+    set (CISSTNETLIB_LANGUAGE "C" CACHE STRING "C or Fortran \(exact match\)" FORCE)
   endif ()
 endif ()
 
@@ -34,7 +47,11 @@ if (NOT ${_languageIsValid})
 endif (NOT ${_languageIsValid})
 
 # --- cisstNetlib configuration
-project (cisstNetlib ${CISSTNETLIB_LANGUAGE})
+if ("${CISSTNETLIB_LANGUAGE}" STREQUAL "Fortran")
+  project (cisstNetlib LANGUAGES Fortran C VERSION 3.1.0)
+else ()
+  project (cisstNetlib LANGUAGES C VERSION 3.1.0)
+endif ()
 
 # --- determine architecture
 if (APPLE)
@@ -66,8 +83,10 @@ if ("${CISSTNETLIB_LANGUAGE}" STREQUAL "C")
 else ("${CISSTNETLIB_LANGUAGE}" STREQUAL "C")
   set (CISSTNETLIB_C_BASED 0)
   set (CISSTNETLIB_FORTRAN_BASED 1)
-  set (CISSTNETLIB_LAPACK_URL "http://www.netlib.org/lapack/lapack-3.5.0.tgz")
-  set (CISSTNETLIB_LAPACK_URL_MD5 b1d3e3e425b2e44a06760ff173104bdf)
+  set (CISSTNETLIB_LAPACK_URL "https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.10.1.tar.gz")
+  set (CISSTNETLIB_LAPACK_URL_MD5 722407217a080a0012ae3d6913fb8008)
+  # older MD5 if needed
+  # 3.5.0 set (CISSTNETLIB_LAPACK_URL_MD5 b1d3e3e425b2e44a06760ff173104bdf)
   # 3.4.2 set (CISSTNETLIB_LAPACK_URL_MD5 61bf1a8a4469d4bdb7604f5897179478)
 endif ("${CISSTNETLIB_LANGUAGE}" STREQUAL "C")
 
@@ -166,7 +185,6 @@ else (WIN32)
   set (LIB_SUBDIR "/")
 endif (WIN32)
 
-
 if (CISSTNETLIB_C_BASED)
   # --- C - find and install all libraries with new names, also copy in current binary so we can use local build as an install tree
   set (CISSTNETLIB_lapack_lib "${CISSTNETLIB_LAPACK_BUILD_DIR}/SRC${LIB_SUBDIR}${CMAKE_STATIC_LIBRARY_PREFIX}lapack${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -260,7 +278,7 @@ configure_file (CisstNetlibConfig.cmake.in
                 "${CMAKE_CURRENT_BINARY_DIR}/CisstNetlibConfig.cmake"
                 @ONLY)
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/CisstNetlibConfig.cmake"
-         DESTINATION "cmake/")
+         DESTINATION "share/cisstNetlib")
 
 # --- prepare installer, tgz on unix systems
 set (CPACK_GENERATOR "TGZ;ZIP;DEB")
@@ -268,10 +286,10 @@ set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "JHU CISST binary distribution of netlib.
 set (CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CISSTNETLIB_ARCHITECTURE}")
 set (CPACK_PACKAGE_NAME "cisstNetlib-${CISSTNETLIB_LANGUAGE}")
 set (CPACK_PACKAGE_VENDOR "JHU")
-set (CPACK_PACKAGE_VERSION "3.0.0")
+set (CPACK_PACKAGE_VERSION "3.1.0")
 set (CPACK_PACKAGE_VERSION_MAJOR "3")
-set (CPACK_PACKAGE_VERSION_MINOR "0")
+set (CPACK_PACKAGE_VERSION_MINOR "1")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
 set (CPACK_DEBIAN_PACKAGE_MAINTAINER "anton.deguet@jhu.edu")
-
+set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 include (CPack)

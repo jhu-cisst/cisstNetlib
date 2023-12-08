@@ -1,12 +1,11 @@
 #
-# $Id$
-#
 # Author(s):  Anton Deguet
 # Created on: 2012-12-09
 #
-# (C) Copyright 2012-2013 Johns Hopkins University (JHU), All Rights
-# Reserved.
+# (C) Copyright 2012-2023 Johns Hopkins University (JHU), All Rights Reserved.
 #
+
+project (cisstNetlib_lawson_hanson_C LANGUAGES ${cisstNetlib_LANGUAGES} VERSION ${cisstNetlib_VERSION})
 
 set (cisstNetlib_lawson_hanson_SOURCES
      diff.c

@@ -1,6 +1,12 @@
 Change log
 ==========
 
+3.2.0 (2023-12-29)
+==================
+
+* Use CLAPACK from jhu-cisst-external forks https://github.com/jhu-cisst-external/clapack (updated to compile on more recent compiler)
+* Updated CMake to use VERSION and CMake variables renamed from `CISSTNETLIB_` to `cisstNetlib_`
+
 3.1.0 (2023-11-21)
 ==================
 

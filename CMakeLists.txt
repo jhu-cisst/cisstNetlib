@@ -2,7 +2,7 @@
 # Author(s):  Anton Deguet
 # Created on: 2012-12-09
 #
-# (C) Copyright 2012-2023 Johns Hopkins University (JHU), All Rights Reserved.
+# (C) Copyright 2012-2024 Johns Hopkins University (JHU), All Rights Reserved.
 #
 
 # some older versions of CMake don't handle external packages properly
@@ -49,6 +49,7 @@ endif (NOT ${_languageIsValid})
 # --- cisstNetlib configuration
 if ("${cisstNetlib_LANGUAGE}" STREQUAL "Fortran")
   set (cisstNetlib_LANGUAGES "Fortran;C")
+  set (cisstNetlib_HAS_QUADMATH 1)
 else ()
   set (cisstNetlib_LANGUAGES "C")
 endif ()
@@ -67,10 +68,18 @@ else (APPLE)
     endif (CMAKE_CL_64)
   else (WIN32)
     # we assume Linux
-    if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
-      set (cisstNetlib_ARCHITECTURE "x86_64")
+   message ("CMAKE_HOST_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+    if ("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+      set (cisstNetlib_ARCHITECTURE "aarch64")
+      message (" cisstNetlib_HAS_QUADMATH ${cisstNetlib_HAS_QUADMATH}")
+      set (cisstNetlib_HAS_QUADMATH 0)
     else ()
-      set (cisstNetlib_ARCHITECTURE "i686")
+      if (${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+	set (cisstNetlib_ARCHITECTURE "x86_64")
+      else ()
+	set (cisstNetlib_ARCHITECTURE "i686")
+      endif ()
+      # end of arm vs intel
     endif ()
     # end of Linux case
   endif (WIN32)
@@ -262,13 +271,15 @@ else (cisstNetlib_C_BASED)
   install (FILES "${cisstNetlib_gcc_runtime}"
            DESTINATION "lib"
            RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_gcc${CMAKE_STATIC_LIBRARY_SUFFIX}")
-  execute_process (COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libquadmath.a
-                   OUTPUT_VARIABLE cisstNetlib_quadmath
-                   OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message ("Using quadmath library: ${cisstNetlib_quadmath}")
-  install (FILES "${cisstNetlib_quadmath}"
-           DESTINATION "lib"
-           RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_quadmath${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  if (cisstNetlib_HAS_QUADMATH)
+    execute_process (COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libquadmath.a
+      OUTPUT_VARIABLE cisstNetlib_quadmath
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message ("Using quadmath library: ${cisstNetlib_quadmath}")
+    install (FILES "${cisstNetlib_quadmath}"
+      DESTINATION "lib"
+      RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_quadmath${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  endif (cisstNetlib_HAS_QUADMATH)
 
 endif (cisstNetlib_C_BASED)
 
@@ -289,8 +300,12 @@ else (cisstNetlib_C_BASED)
        cisstNetlib_lapack
        cisstNetlib_blas
        cisstNetlib_gfortran
-       cisstNetlib_quadmath
        cisstNetlib_gcc)
+  if (cisstNetlib_HAS_QUADMATH)
+    set (cisstNetlib_LIBRARIES_SHORT_NAMES
+      ${cisstNetlib_LIBRARIES_SHORT_NAMES}
+      cisstNetlib_quadmath)
+  endif (cisstNetlib_HAS_QUADMATH)
 endif (cisstNetlib_C_BASED)
 
 configure_file (CisstNetlibConfig.cmake.in

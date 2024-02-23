@@ -68,10 +68,9 @@ else (APPLE)
     endif (CMAKE_CL_64)
   else (WIN32)
     # we assume Linux
-   message ("CMAKE_HOST_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR}")
     if ("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
       set (cisstNetlib_ARCHITECTURE "aarch64")
-      message (" cisstNetlib_HAS_QUADMATH ${cisstNetlib_HAS_QUADMATH}")
+      message ("STATUS cisstNetlib_HAS_QUADMATH ${cisstNetlib_HAS_QUADMATH}")
       set (cisstNetlib_HAS_QUADMATH 0)
     else ()
       if (${CMAKE_SIZEOF_VOID_P} EQUAL 8)
@@ -260,14 +259,14 @@ else (cisstNetlib_C_BASED)
   find_library (cisstNetlib_fortran_runtime_link gfortran HINTS ${cisstNetlib_fortran_runtime_directory})
   # the result might be a link, find the real path
   get_filename_component (cisstNetlib_fortran_runtime ${cisstNetlib_fortran_runtime_link} REALPATH)
-  message ("Using fortran runtime library: ${cisstNetlib_fortran_runtime}")
+  message (STATUS "Using fortran runtime library: ${cisstNetlib_fortran_runtime}")
   install (FILES "${cisstNetlib_fortran_runtime}"
            DESTINATION "lib"
            RENAME "${CMAKE_SHARED_LIBRARY_PREFIX}cisstNetlib_gfortran${CMAKE_SHARED_LIBRARY_SUFFIX}")
   execute_process (COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libgcc.a
                    OUTPUT_VARIABLE cisstNetlib_gcc_runtime
                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  message ("Using gcc runtime library: ${cisstNetlib_gcc_runtime}")
+  message (STATUS "Using gcc runtime library: ${cisstNetlib_gcc_runtime}")
   install (FILES "${cisstNetlib_gcc_runtime}"
            DESTINATION "lib"
            RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_gcc${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -275,7 +274,7 @@ else (cisstNetlib_C_BASED)
     execute_process (COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libquadmath.a
       OUTPUT_VARIABLE cisstNetlib_quadmath
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-    message ("Using quadmath library: ${cisstNetlib_quadmath}")
+    message (STATUS "Using quadmath library: ${cisstNetlib_quadmath}")
     install (FILES "${cisstNetlib_quadmath}"
       DESTINATION "lib"
       RENAME "${CMAKE_STATIC_LIBRARY_PREFIX}cisstNetlib_quadmath${CMAKE_STATIC_LIBRARY_SUFFIX}")

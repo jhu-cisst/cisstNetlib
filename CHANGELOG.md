@@ -1,6 +1,12 @@
 Change log
 ==========
 
+3.2.1 (2024-08-30)
+==================
+
+* Change CMake message level to STATUS
+* Minor fix for arm64
+
 3.2.0 (2023-12-29)
 ==================
 

@@ -54,7 +54,7 @@ else ()
   set (cisstNetlib_LANGUAGES "C")
 endif ()
 
-project (cisstNetlib LANGUAGES ${cisstNetlib_LANGUAGES} VERSION 3.1.0)
+project (cisstNetlib LANGUAGES ${cisstNetlib_LANGUAGES} VERSION 3.2.1)
 
 # --- determine architecture
 if (APPLE)
@@ -319,10 +319,10 @@ set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "JHU CISST binary distribution of netlib.
 set (CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${cisstNetlib_ARCHITECTURE}")
 set (CPACK_PACKAGE_NAME "cisstNetlib-${cisstNetlib_LANGUAGE}")
 set (CPACK_PACKAGE_VENDOR "JHU")
-set (CPACK_PACKAGE_VERSION "3.1.0")
-set (CPACK_PACKAGE_VERSION_MAJOR "3")
-set (CPACK_PACKAGE_VERSION_MINOR "1")
-set (CPACK_PACKAGE_VERSION_PATCH "0")
+set (CPACK_PACKAGE_VERSION "${cisstNetlib_VERSION_MAJOR}.${cisstNetlib_VERSION_MINOR}.${cisstNetlib_VERSION_PATCH}")
+set (CPACK_PACKAGE_VERSION_MAJOR "${cisstNetlib_VERSION_MAJOR}")
+set (CPACK_PACKAGE_VERSION_MINOR "${cisstNetlib_VERSION_MINOR}")
+set (CPACK_PACKAGE_VERSION_PATCH "${cisstNetlib_VERSION_PATCH}")
 set (CPACK_DEBIAN_PACKAGE_MAINTAINER "anton.deguet@jhu.edu")
 set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 include (CPack)

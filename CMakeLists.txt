@@ -8,19 +8,6 @@
 # some older versions of CMake don't handle external packages properly
 cmake_minimum_required(VERSION 3.10)
 
-if (UNIX)
-  find_program (LSB_RELEASE_EXEC lsb_release)
-  execute_process(COMMAND ${LSB_RELEASE_EXEC} -is
-                  OUTPUT_VARIABLE LSB_RELEASE_ID
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${LSB_RELEASE_EXEC} -rs
-                  OUTPUT_VARIABLE LSB_RELEASE_RELEASE
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if ("${LSB_RELEASE_ID}" STREQUAL "Ubuntu" AND "${LSB_RELEASE_RELEASE}" STREQUAL "22.04")
-    set (CMAKE_Fortran_COMPILER "gfortran-9")
-  endif ()
-endif (UNIX)
-
 # Auto detect if Fortran compiler has been installed
 if (NOT cisstNetlib_LANGUAGE)
   enable_language (Fortran OPTIONAL)

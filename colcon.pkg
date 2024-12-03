@@ -1,3 +1,6 @@
 {
-  "name": "cisstNetlib"
+  "name": "cisstNetlib",
+  "cmake-args": [
+    "-DcisstNetlib_LANGUAGE=C"
+    ]
 }

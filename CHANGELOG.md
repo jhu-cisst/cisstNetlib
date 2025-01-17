@@ -1,6 +1,11 @@
 Change log
 ==========
 
+3.2.2 (2025-01-17)
+==================
+
+* Use C implementation for any distribution using ROS2
+
 3.2.1 (2024-08-30)
 ==================
 

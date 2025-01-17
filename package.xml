@@ -1,6 +1,6 @@
 <package>
   <name>cisst_netlib</name>
-  <version>3.2.1</version>
+  <version>3.2.2</version>
   <description>
   This package provides a binary version of miscellaneous numerical routines found on netlib.org
   </description>

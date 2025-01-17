@@ -2,24 +2,11 @@
 # Author(s):  Anton Deguet
 # Created on: 2012-12-09
 #
-# (C) Copyright 2012-2024 Johns Hopkins University (JHU), All Rights Reserved.
+# (C) Copyright 2012-2025 Johns Hopkins University (JHU), All Rights Reserved.
 #
 
 # some older versions of CMake don't handle external packages properly
 cmake_minimum_required(VERSION 3.10)
-
-if (UNIX)
-  find_program (LSB_RELEASE_EXEC lsb_release)
-  execute_process(COMMAND ${LSB_RELEASE_EXEC} -is
-                  OUTPUT_VARIABLE LSB_RELEASE_ID
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${LSB_RELEASE_EXEC} -rs
-                  OUTPUT_VARIABLE LSB_RELEASE_RELEASE
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if ("${LSB_RELEASE_ID}" STREQUAL "Ubuntu" AND "${LSB_RELEASE_RELEASE}" STREQUAL "22.04")
-    set (CMAKE_Fortran_COMPILER "gfortran-9")
-  endif ()
-endif (UNIX)
 
 # Auto detect if Fortran compiler has been installed
 if (NOT cisstNetlib_LANGUAGE)
@@ -54,7 +41,7 @@ else ()
   set (cisstNetlib_LANGUAGES "C")
 endif ()
 
-project (cisstNetlib LANGUAGES ${cisstNetlib_LANGUAGES} VERSION 3.2.1)
+project (cisstNetlib LANGUAGES ${cisstNetlib_LANGUAGES} VERSION 3.2.2)
 
 # --- determine architecture
 if (APPLE)

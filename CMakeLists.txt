@@ -6,7 +6,7 @@
 #
 
 # some older versions of CMake don't handle external packages properly
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # set default to C
 set (cisstNetlib_LANGUAGE "C" CACHE STRING "C or Fortran \(exact match\)")

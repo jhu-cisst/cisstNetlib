@@ -6,18 +6,15 @@
 #
 
 # some older versions of CMake don't handle external packages properly
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
-# Auto detect if Fortran compiler has been installed
-if (NOT cisstNetlib_LANGUAGE)
+# set default to C
+set (cisstNetlib_LANGUAGE "C" CACHE STRING "C or Fortran \(exact match\)")
+
+# if Fortran, enable it
+if (cisstNetlib_LANGUAGE STREQUAL "Fortran")
   enable_language (Fortran OPTIONAL)
-  if (CMAKE_Fortran_COMPILER_WORKS)
-    set (cisstNetlib_LANGUAGE "Fortran" CACHE STRING "C or Fortran \(exact match\)" FORCE)
-  else ()
-    set (cisstNetlib_LANGUAGE "C" CACHE STRING "C or Fortran \(exact match\)" FORCE)
-  endif ()
 endif ()
-
 
 # --- determine language, C or Fortran
 set (_languageIsValid OFF)

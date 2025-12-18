@@ -1,6 +1,14 @@
 Change log
 ==========
 
+3.2.3 (2025-12-18)
+==================
+
+* CMake
+  * Minimum required version 3.16
+  * Default is C for all distributions
+  * For external package, set UPDATE_COMMAND to nil
+
 3.2.2 (2025-01-17)
 ==================
 

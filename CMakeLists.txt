@@ -38,7 +38,7 @@ else ()
   set (cisstNetlib_LANGUAGES "C")
 endif ()
 
-project (cisstNetlib LANGUAGES ${cisstNetlib_LANGUAGES} VERSION 3.2.2)
+project (cisstNetlib LANGUAGES ${cisstNetlib_LANGUAGES} VERSION 3.2.3)
 
 # --- determine architecture
 if (APPLE)

@@ -20,6 +20,10 @@ set (cisstNetlib_lawson_hanson_SOURCES
 
 add_library (cisstNetlib_lawson_hanson ${cisstNetlib_lawson_hanson_SOURCES})
 
+# Legacy f2c code requires pre-C23 empty parameter-list behavior.
+set_property (TARGET cisstNetlib_lawson_hanson PROPERTY C_STANDARD 17)
+set_property (TARGET cisstNetlib_lawson_hanson PROPERTY C_STANDARD_REQUIRED ON)
+
 install (TARGETS cisstNetlib_lawson_hanson
          RUNTIME DESTINATION bin
          LIBRARY DESTINATION lib

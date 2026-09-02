@@ -36,6 +36,10 @@ set (cisstNetlib_hanson_haskell_SOURCES
 
 add_library (cisstNetlib_hanson_haskell ${cisstNetlib_hanson_haskell_SOURCES})
 
+# Legacy f2c code requires pre-C23 empty parameter-list behavior.
+set_property (TARGET cisstNetlib_hanson_haskell PROPERTY C_STANDARD 17)
+set_property (TARGET cisstNetlib_hanson_haskell PROPERTY C_STANDARD_REQUIRED ON)
+
 install (TARGETS cisstNetlib_hanson_haskell
          RUNTIME DESTINATION bin
          LIBRARY DESTINATION lib
